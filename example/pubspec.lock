@@ -31,7 +31,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.0.1"
+    version: "1.0.3"
   characters:
     dependency: transitive
     description:
@@ -299,10 +299,10 @@ packages:
     dependency: transitive
     description:
       name: resource_storage
-      sha256: "6fc88f9efd8b20fbdffff07ab98d211fa38561d271e84b4a3b8f7d200d85c74a"
+      sha256: "157a71b73e8a77d0cc3138427e0517b973d47c1c61a9fcbe899d73f405e27242"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0+2"
+    version: "1.0.2"
   resource_storage_hive:
     dependency: "direct main"
     description:

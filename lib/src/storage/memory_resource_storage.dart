@@ -17,7 +17,7 @@ class MemoryResourceStorageProvider implements ResourceStorageProvider {
     StorageDecoder<V>? decode,
     StorageExecutor? executor,
     TimestampProvider? timestampProvider,
-    Logger? logger,
+    ResourceLogger? logger,
   }) =>
       MemoryResourceStorage(
         storageName: storageName,

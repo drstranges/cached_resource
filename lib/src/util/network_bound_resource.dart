@@ -70,7 +70,7 @@ class NetworkBoundResource<K, V> {
     required ResourceStorage<K, V> storage,
     required CacheDuration<K, V> cacheDuration,
     FetchCallable<K, V>? fetch,
-    Logger? logger,
+    ResourceLogger? logger,
     TimestampProvider timestampProvider = const TimestampProvider(),
     bool internalCacheEnabled = true,
   })  : _logger = logger,
@@ -84,7 +84,7 @@ class NetworkBoundResource<K, V> {
   final FetchCallable<K, V>? _fetch;
   final CacheDuration<K, V> _cacheDuration;
   final ResourceStorage<K, V> _storage;
-  final Logger? _logger;
+  final ResourceLogger? _logger;
 
   /// Set custom timestamp provider if you need it in tests
   final TimestampProvider _timestampProvider;

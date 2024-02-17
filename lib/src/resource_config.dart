@@ -30,7 +30,7 @@ class ResourceConfig {
     ResourceStorageProvider? secureStorageFactory,
     ResourceStorageProvider inMemoryStorageFactory =
         const MemoryResourceStorageProvider(),
-    Logger? logger = const Logger(),
+    ResourceLogger? logger = const ResourceLogger(),
   }) {
     instance = ResourceConfig._(
       logger: logger,
@@ -41,7 +41,7 @@ class ResourceConfig {
   }
 
   ResourceConfig._({
-    this.logger = const Logger(),
+    this.logger = const ResourceLogger(),
     this.inMemoryStorageFactory = const MemoryResourceStorageProvider(),
     this.persistentStorageFactory,
     this.secureStorageFactory,
@@ -51,7 +51,7 @@ class ResourceConfig {
   static ResourceConfig instance = ResourceConfig._();
 
   /// Default logger instance
-  final Logger? logger;
+  final ResourceLogger? logger;
 
   /// Storage factory that used to create in-memory storage
   /// when [CachedResource.inMemory] called.

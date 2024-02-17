@@ -1,6 +1,6 @@
 name: cached_resource
 description: "Cached resource implementation based on `NetworkBoundResource` to follow the single source of truth principle."
-version: 1.0.2
+version: 1.0.3
 homepage: https://github.com/drstranges/cached_resource
 repository: https://github.com/drstranges/cached_resource
 issue_tracker: https://github.com/drstranges/cached_resource/issues
@@ -12,7 +12,7 @@ environment:
   sdk: '>=3.2.0 <4.0.0'
 
 dependencies:
-  resource_storage: ">=1.0.0 <2.0.0"
+  resource_storage: ">=1.0.2 <2.0.0"
   synchronized: ">=3.0.0 <4.0.0"
   rxdart: ">=0.27.7 <0.28.0"
   collection: ">=1.17.2 <2.0.0"
