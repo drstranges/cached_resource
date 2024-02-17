@@ -31,7 +31,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.0.0"
+    version: "1.0.1"
   characters:
     dependency: transitive
     description:
@@ -307,18 +307,18 @@ packages:
     dependency: "direct main"
     description:
       name: resource_storage_hive
-      sha256: cf58d49a8dfe11556aa39282886e19543261f75186c5d2dc10d981343e2fe451
+      sha256: c2810f2e952abd9ab59ddc76d0f29ec223229579c91563a83586d34628f82670
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0+1"
+    version: "1.0.1"
   resource_storage_secure:
     dependency: "direct main"
     description:
       name: resource_storage_secure
-      sha256: "06ad9d826840042cb6eba8b79be7edd3232b6eb069bae18b66e177728aadfe86"
+      sha256: dbf4f2f69103f7dafdba80d0901061c3ce0f1eebc060a415774835d5f8d5a82b
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0"
+    version: "1.0.1"
   rxdart:
     dependency: transitive
     description:

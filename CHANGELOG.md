@@ -4,3 +4,6 @@
 ## 1.0.1
 * Improved performance of loading from cache.
 * Simplified interface.
+
+## 1.0.2
+* Set lover Dart sdk requirements

@@ -1,6 +1,6 @@
 name: cached_resource
 description: "Cached resource implementation based on `NetworkBoundResource` to follow the single source of truth principle."
-version: 1.0.1
+version: 1.0.2
 homepage: https://github.com/drstranges/cached_resource
 repository: https://github.com/drstranges/cached_resource
 issue_tracker: https://github.com/drstranges/cached_resource/issues
