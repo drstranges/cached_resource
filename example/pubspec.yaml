@@ -12,8 +12,8 @@ dependencies:
     sdk: flutter
   cached_resource:
     path: ..
-  resource_storage_hive: ^1.0.0
-  resource_storage_secure: ^1.0.0
+  resource_storage_hive: ^1.0.1
+  resource_storage_secure: ^1.0.1
   flutter_bloc: ^8.1.4
 
 dev_dependencies:
