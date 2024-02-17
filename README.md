@@ -2,12 +2,11 @@
 
 [![pub package](https://img.shields.io/pub/v/cached_resource.svg)](https://pub.dev/packages/cached_resource)
 
-Cached resource implementation based on `NetworkBoundResource` approach
+Cached resource implementation based on the `NetworkBoundResource` approach
 to follow the single source of truth principle.
 
-Define a single cached resource repository and subscribe for updates in multiple places,
-trigger to refresh from any place and be sure that a single network request will be called 
-and all listeners receive updated value.
+Define a cached resource, subscribe for updates in multiple places, and be sure that
+a single network request will be called and all listeners receive a new value.
 
 ## Usage
 
@@ -15,11 +14,12 @@ To use this plugin, add `cached_resource` as a dependency in your pubspec.yaml f
 
 ### Configuration
 
-In any place before usage of `CachedResource` call `ResourceConfig.setup` and provide
+In any place before usage of `CachedResource`, call `ResourceConfig.setup` and provide
 factories for persistent and/or secure storage.
 
-Note: This step is required only to use `CachedResource.persistent` and `CachedResource.secure`.
-But it is optional step to use in-memory storage `CachedResource.inMemory`.
+Note: This step is required if you want to use `CachedResource.persistent`
+and `CachedResource.secure`. But it is optional if you will use `CachedResource.inMemory`
+or `CachedResource.new`.
 
 ```dart
 void main() {
@@ -49,7 +49,7 @@ Other storages should be added as new dependencies:
 
 ### Define a resource/repository
 
-There are a few ways how to create a resource depending on used storage.
+There are a few ways to create a resource depending on used storage.
 
 #### With In-Memory cache
 
@@ -95,11 +95,9 @@ class CategoryRepository {
 
   final CachedResource<String, List<Category>> _categoryResource;
 
-  // Here we can use any constant key
-  // as category list do not require any identifier.
-  // But in some cases you may need a unique key,
-  // for example if you need to separate lists by current authenticated user
-  // then you can use currentUserId as a key.
+  // We can use any constant key here, as the category list does not require any identifier.
+  // But in some cases, you may need a unique key; for example, if you need to separate lists
+  // by the currently authenticated user, you can use currentUserId as a key.
   final _key = 'key';
 
   Stream<Resource<List<Category>>> watchCategories() =>
@@ -150,11 +148,11 @@ class UserRepository extends CachedResource<String, User> {
 }
 ```
 
-### Listen for the resource stream or just get value
+### Listen for the resource stream or get value
 
-To get a single value just call `cachedResource.get(key)`.
-If cache is not stale then cached value will be returned,
-else new fetch request will be called and received returned.
+Call `cachedResource.get(key)` to get a single value.
+If the cache is not stale, it returns the cached value; otherwise, it triggers a new fetch request
+and returns the received value.
 
 ```dart
 void foo() async {
@@ -170,7 +168,7 @@ void foo() async {
 }
 ```
 
-To listen for resource just call `cachedResource.asStream(key)`.
+To listen for resource updates, call `cachedResource.asStream(key)`.
 It will emit `Resource` that can be one of 3 states:
  - `Resoorce.loading(data)` - fetch request triggered. `Resource.data` may contain old cached value.
  - `Resoorce.success(data)` - fetch request completed with fresh data or cache is not stale yet. `Resource.data` contains non null fresh value.
@@ -197,8 +195,9 @@ void refresh() => _categoryRepository.invalidate();
 
 void deleteCategory(String categoryId) async {
   await _api.deleteCategory(categoryId);
-  // We don't want to reload full list from the server, so just delete item from the list in cache.
-  // Each observer will receive updated list immediately.
+  // We don't want to reload the list from the server,
+  // so we just delete the item from the list in cache.
+  // Each observer will receive an updated list immediately.
   _categoryRepository.removeCategoryFromCache(categoryId);
 }
 ```
