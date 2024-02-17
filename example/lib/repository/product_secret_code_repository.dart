@@ -7,10 +7,10 @@ import 'package:example/api/product_api.dart';
 
 class ProductSecretCodeRepository extends CachedResource<String, String> {
   ProductSecretCodeRepository(ProductApi api)
-      : super.secure(
-          'secret_code',
-          fetch: api.getProductSecretCode,
-          decode: (json) => json as String,
-          cacheDuration: const Duration(days: 15),
-        );
+      : super.secure('secret_code',
+            fetch: api.getProductSecretCode,
+            cacheDuration: const CacheDuration.neverStale(),
+            // internalCacheEnabled: true //<-- can improve loading from cache,
+            // but keeps last value in the internal memory cache
+            );
 }

@@ -15,7 +15,7 @@ import 'package:example/util/executor.dart';
         : _productResource = CachedResource.persistent(
             'products',
             fetch: (_) => api.getProducts(),
-            cacheDuration: const Duration(minutes: 1),
+            cacheDuration: const CacheDuration(minutes: 1),
             decode: Product.listFromJson,
             // Use executor only if [decode] callback does really heavy work,
             // for example if it parses a large json list with hundreds of heavy items

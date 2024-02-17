@@ -1,2 +1,6 @@
 ## 1.0.0
 * Add initial implementation of cached_resource package
+
+## 1.0.1
+* Improved performance of loading from cache.
+* Simplified interface.

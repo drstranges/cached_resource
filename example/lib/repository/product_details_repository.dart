@@ -12,6 +12,6 @@ class ProductDetailsRepository extends CachedResource<String, ProductDetails> {
       : super.inMemory(
           'product_details',
           fetch: api.getProductDetails,
-          cacheDuration: const Duration(minutes: 15),
+          cacheDuration: const CacheDuration(minutes: 15),
         );
 }

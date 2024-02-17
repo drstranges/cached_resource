@@ -9,6 +9,7 @@ library cached_resource;
 export 'package:resource_storage/resource_storage.dart';
 
 export 'src/cached_resource.dart';
-export 'src/resource_config.dart';
 export 'src/resource.dart';
+export 'src/resource_config.dart';
 export 'src/storage/memory_resource_storage.dart';
+export 'src/util/cache_duration.dart';

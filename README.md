@@ -12,6 +12,18 @@ a single network request will be called and all listeners receive a new value.
 
 To use this plugin, add `cached_resource` as a dependency in your pubspec.yaml file.
 
+### Resource Storage
+
+From the box there is only In-Memory storage shipped with the package.
+
+Other storages should be added as new dependencies:
+
+1. [resource_storage_hive](https://pub.dev/packages/resource_storage_hive) - simple persistent
+   storage based on [hive](https://pub.dev/packages/hive) with simple JSON decoder.
+2. [resource_storage_secure](https://pub.dev/packages/resource_storage_secure) - secure persistent
+   storage based [flutter_secure_storage](https://pub.dev/packages/flutter_secure_storage) with
+   simple JSON decoder.
+
 ### Configuration
 
 In any place before usage of `CachedResource`, call `ResourceConfig.setup` and provide
@@ -35,18 +47,6 @@ void main() {
 }
 ```
 
-### Resource Storage
-
-From the box there is only In-Memory storage shipped with the package.
-
-Other storages should be added as new dependencies:
-
-1. [resource_storage_hive](https://pub.dev/packages/resource_storage_hive) - simple persistent
-   storage based on [hive](https://pub.dev/packages/hive) with simple JSON decoder.
-2. [resource_storage_secure](https://pub.dev/packages/resource_storage_secure) - secure persistent
-   storage based [flutter_secure_storage](https://pub.dev/packages/flutter_secure_storage) with
-   simple JSON decoder.
-
 ### Define a resource/repository
 
 There are a few ways to create a resource depending on used storage.
@@ -60,7 +60,7 @@ class AccountBalanceRepository extends CachedResource<String, AccountBalance> {
       : super.inMemory(
           'account_balance',
           fetch: api.getAccountBalance,
-          cacheDuration: const Duration(minutes: 15),
+          cacheDuration: const CacheDuration(minutes: 15),
         );
 }
 
@@ -70,7 +70,7 @@ final accountBalanceResource = CachedResource<String, AccountBalance>.inMemory(
   'account_balance',
   fetch: api.getAccountBalance,
   decode: AccountBalance.fromJson,
-  cacheDuration: const Duration(minutes: 15),
+  cacheDuration: const CacheDuration(minutes: 15),
 );
 
 ```
@@ -86,7 +86,7 @@ class CategoryRepository {
       : _categoryResource = CachedResource.persistent(
           'categories',
           fetch: (_) => api.getCategories(),
-          cacheDuration: const Duration(days: 15),
+          cacheDuration: const CacheDuration(days: 15),
           decode: Category.listFromJson,
           // Use executor only if [decode] callback does really heavy work,
           // for example if it parses a large json list with hundreds of heavy items
@@ -125,8 +125,7 @@ class ProductSecretCodeRepository extends CachedResource<String, String> {
       : super.secure(
           'secret_code',
           fetch: api.getProductSecretCode,
-          decode: (json) => json as String,
-          cacheDuration: const Duration(days: 15),
+          cacheDuration: const CacheDuration.newerStale(),
         );
 }
 ```
@@ -142,7 +141,7 @@ class UserRepository extends CachedResource<String, User> {
       : super(
           'users',
           fetch: api.getUserById,
-          cacheDuration: const Duration(days: 15),
+          cacheDuration: const CacheDuration(days: 15),
           storage: YourCustomStorage(),
         );
 }

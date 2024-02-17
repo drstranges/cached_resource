@@ -5,11 +5,13 @@
 import 'dart:async';
 
 import 'package:resource_storage/resource_storage.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:synchronized/synchronized.dart';
 
 import 'resource.dart';
 import 'resource_config.dart';
 import 'storage/memory_resource_storage.dart';
+import 'util/cache_duration.dart';
 import 'util/network_bound_resource.dart';
 
 /// Cached resource implementation based on [NetworkBoundResource]
@@ -22,7 +24,7 @@ import 'util/network_bound_resource.dart';
 ///     'user_wallet_info', // storage name, like table name in a database
 ///     fetch: _api.getWalletById,
 ///     decode: Wallet.fromJson,
-///     cacheDuration: const Duration(minutes: 30),
+///     cacheDuration: const CacheDuration(minutes: 30),
 ///     );
 ///
 /// void listenForWalletUpdates() {
@@ -57,24 +59,24 @@ class CachedResource<K, V> {
   /// If [fetch] not set then there is only [putValue] and [updateCachedValue]
   /// methods to set/update value of the resource.
   ///
-  /// [cacheDuration] - is a simple way to set cache duration. If resource
-  /// is requested after [cacheDuration] cached value will be treated
-  /// as stale and new fetch request will be triggered.
-  /// If [fetch] is not set or if [cacheDurationResolver] is set then
-  /// [cacheDuration] is ignored.
+  /// [cacheDuration] used to check if cache is stale. If cache is stale
+  /// then new fetch request will be triggered.
+  /// If [fetch] is not set then [cacheDuration] is ignored.
+  /// Set [CacheDuration.neverStale] to never stale cache.
   ///
-  /// Use [cacheDurationResolver] if you need a custom logic for dynamically
-  /// resolving cache duration by resource value.
+  /// By default, the last emitted success value is keeping in the internal
+  /// cache to emit [Resource.loading] state as soon as possible. To disable
+  /// the internal cache set [internalCacheEnabled] = false.
   ///
   CachedResource({
     required ResourceStorage<K, V> storage,
     FetchCallable<K, V>? fetch,
-    Duration? cacheDuration,
-    CacheDurationResolver<K, V>? cacheDurationResolver,
+    CacheDuration<K, V> cacheDuration = const CacheDuration.neverStale(),
+    bool internalCacheEnabled = true,
   })  : _fetch = fetch,
         _storage = storage,
-        _cacheDurationResolver = (cacheDurationResolver ??
-            (_, __) => cacheDuration ?? Duration.zero);
+        _internalCacheEnabled = internalCacheEnabled,
+        _cacheDuration = cacheDuration;
 
   /// Creates CachedResource with In-Memory storage.
   ///
@@ -87,8 +89,7 @@ class CachedResource<K, V> {
   CachedResource.inMemory(
     String cacheName, {
     FetchCallable<K, V>? fetch,
-    Duration? cacheDuration,
-    CacheDurationResolver<K, V>? cacheDurationResolver,
+    CacheDuration<K, V> cacheDuration = const CacheDuration.neverStale(),
   }) : this(
           storage: ResourceConfig.instance.inMemoryStorageFactory
               .createStorage<K, V>(
@@ -97,7 +98,6 @@ class CachedResource<K, V> {
           ),
           fetch: fetch,
           cacheDuration: cacheDuration,
-          cacheDurationResolver: cacheDurationResolver,
         );
 
   /// Creates CachedResource with persistent storage.
@@ -118,21 +118,19 @@ class CachedResource<K, V> {
     String cacheName, {
     FetchCallable<K, V>? fetch,
     StorageDecoder<V>? decode,
-    Duration? cacheDuration,
-    CacheDurationResolver<K, V>? cacheDurationResolver,
+    CacheDuration<K, V> cacheDuration = const CacheDuration.neverStale(),
     StorageExecutor? executor,
   }) : this(
           storage: ResourceConfig.instance
               .requirePersistentStorageProvider()
               .createStorage<K, V>(
                 storageName: cacheName,
-                decode: decode,
+                decode: decode ?? _defaultDecoder<V>(),
                 executor: executor,
                 logger: ResourceConfig.instance.logger,
               ),
           fetch: fetch,
           cacheDuration: cacheDuration,
-          cacheDurationResolver: cacheDurationResolver,
         );
 
   /// Creates CachedResource with secure storage.
@@ -147,53 +145,64 @@ class CachedResource<K, V> {
   /// we need to provide fromJson factory, usually something like
   /// `decode: User.fromJson`.
   ///
+  /// By default, for secure resource we set [internalCacheEnabled] = false
+  /// to not keep emitted values in the internal cache.
+  ///
   /// Also see [CachedResource.new].
   ///
   CachedResource.secure(
     String cacheName, {
     FetchCallable<K, V>? fetch,
     StorageDecoder<V>? decode,
-    Duration? cacheDuration,
-    CacheDurationResolver<K, V>? cacheDurationResolver,
+    CacheDuration<K, V> cacheDuration = const CacheDuration.neverStale(),
+    bool internalCacheEnabled = false,
   }) : this(
           storage: ResourceConfig.instance
               .requireSecureStorageProvider()
               .createStorage<K, V>(
                 storageName: cacheName,
-                decode: decode,
+                decode: decode ?? _defaultDecoder<V>(),
                 logger: ResourceConfig.instance.logger,
               ),
           fetch: fetch,
           cacheDuration: cacheDuration,
-          cacheDurationResolver: cacheDurationResolver,
+          internalCacheEnabled: internalCacheEnabled,
         );
 
   final ResourceStorage<K, V> _storage;
   final FetchCallable<K, V>? _fetch;
-  final CacheDurationResolver<K, V> _cacheDurationResolver;
+  final CacheDuration<K, V> _cacheDuration;
+  final bool _internalCacheEnabled;
   final _resources = <K, NetworkBoundResource<K, V>>{};
   final _lock = Lock();
 
-  /// Triggers resource to load (from cache or external if cache is stale)
-  /// and returns hot stream of resource.
+  /// Creates cold (defer) stream of the resource. On subscribe it triggers
+  /// resource to load from cache or external source ([_fetch] callback)
+  /// if cache is stale.
   ///
   /// Set [forceReload] = true to force resource reloading from external source
   /// even if cache is not stale yet.
-  ///
-  Stream<Resource<V>> asStream(K key, {bool forceReload = false}) async* {
-    final resource = await _ensureResource(key);
-    yield* resource.asStream(forceReload: forceReload);
-  }
+  Stream<Resource<V>> asStream(K key, {bool forceReload = false}) =>
+      Rx.defer(() async* {
+        final resource = await _ensureResource(key);
+        yield* resource.asStream(forceReload: forceReload);
+      });
 
   /// Triggers resource to load (from cache or external if cache is stale)
-  /// and returns resource.
+  /// and returns not stale resource or error.
   ///
   /// Set [forceReload] = true to force resource reloading from external source
   /// even if cache is not stale yet.
   ///
-  Future<Resource<V>> get(K key, {bool forceReload = false}) =>
+  /// Note: You never get [Resource.loading] state here
+  /// unless [allowLoadingState] set true.
+  Future<Resource<V>> get(
+    K key, {
+    bool forceReload = false,
+    bool allowLoadingState = false,
+  }) =>
       asStream(key, forceReload: forceReload)
-          .where((r) => r.isNotLoading)
+          .where((r) => r.isNotLoading || (allowLoadingState && r.hasData))
           .first;
 
   /// Make cache stale.
@@ -202,7 +211,7 @@ class CachedResource<K, V> {
   /// or error.
   Future<void> invalidate(K key, {bool forceReload = true}) async {
     final resource = await _ensureResource(key);
-    return resource.invalidate(forceReload);
+    return resource.invalidate(forceReload: forceReload);
   }
 
   /// Applies [edit] function to cached value and emit as new success value
@@ -254,11 +263,15 @@ class CachedResource<K, V> {
           () => NetworkBoundResource<K, V>(
             key,
             fetch: _fetch,
-            cacheDurationResolver: _cacheDurationResolver,
+            cacheDuration: _cacheDuration,
             storage: _storage,
+            internalCacheEnabled: _internalCacheEnabled,
             logger: ResourceConfig.instance.logger,
           ),
         );
         return resource;
       });
 }
+
+/// Simple decoder that return received value without transformation
+StorageDecoder<V> _defaultDecoder<V>() => (value) => value as V;

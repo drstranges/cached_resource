@@ -24,7 +24,10 @@ class _SecretCodeWidgetState extends State<SecretCodeWidget> {
 
   void _showCode() async {
     setState(() => _state = _State(isLoading: true));
-    final resource = await _repository.get(widget.productId);
+    final resource = await _repository.get(
+      widget.productId,
+      allowLoadingState: true,
+    );
     if (!context.mounted) return;
     if (resource.hasData) {
       setState(() => _state = _State(code: resource.data!));
