@@ -1,0 +1,25 @@
+name: example
+description: "Example of using cached_resource library"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.6 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cached_resource:
+    path: ..
+  resource_storage_hive: ^1.0.0
+  resource_storage_secure: ^1.0.0
+  flutter_bloc: ^8.1.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
