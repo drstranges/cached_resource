@@ -6,9 +6,12 @@ import 'dart:async';
 
 import 'package:example/di.dart';
 import 'package:example/secret_code_widget.dart';
+import 'package:example/widgets/error_state_widget.dart';
 import 'package:flutter/material.dart';
 
 import 'api/product_api.dart';
+import 'product_store_list_page.dart';
+import 'widgets/progress_state_widget.dart';
 
 // Usually any logic placed in Bloc/Cubit and stateless widget used
 class ProductDetailsPage extends StatefulWidget {
@@ -86,30 +89,11 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
               product,
               onDeletePressed: () => _deleteProduct(product.baseInfo.id),
             ),
-          _State(hasError: true) => SizedBox.expand(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Pretend there is a readable description of some error!',
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Trigger resource to be reloaded
-                      _repository.invalidate(widget.productId);
-                    },
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            ),
-          _ => const SizedBox.expand(
-              child: Center(
-                child: CircularProgressIndicator(),
-              ),
-            ),
+          _State(hasError: true) => ErrorStateWidget(onRetry: () {
+              // Trigger resource to be reloaded
+              _repository.invalidate(widget.productId);
+            }),
+          _ => const ProgressStateWidget(),
         },
       ),
     );
@@ -159,6 +143,18 @@ class ProductDetailsWidget extends StatelessWidget {
         SecretCodeWidget(productId: _product.baseInfo.id),
         const SizedBox(height: 16),
         Text(_product.extraDescription, textAlign: TextAlign.center),
+        const SizedBox(height: 24),
+        ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ProductStoreListPage(productId: _product.baseInfo.id),
+                ),
+              );
+            },
+            child: const Text('Where to buy')),
         const Spacer(),
         ElevatedButton(
           onPressed: onDeletePressed,

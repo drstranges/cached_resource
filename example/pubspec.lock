@@ -307,18 +307,18 @@ packages:
     dependency: "direct main"
     description:
       name: resource_storage_hive
-      sha256: c2810f2e952abd9ab59ddc76d0f29ec223229579c91563a83586d34628f82670
+      sha256: "58d269b091b56a1c9c811f39c641baa125b438d4950120a0eeae04fa7c039083"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.1"
+    version: "1.0.2"
   resource_storage_secure:
     dependency: "direct main"
     description:
       name: resource_storage_secure
-      sha256: dbf4f2f69103f7dafdba80d0901061c3ce0f1eebc060a415774835d5f8d5a82b
+      sha256: af92ae5249a505b82438b294443715cd68673bfff2939daed65c70ca065e1390
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.1"
+    version: "1.0.2"
   rxdart:
     dependency: transitive
     description:

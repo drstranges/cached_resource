@@ -15,6 +15,8 @@ import 'di.dart';
 import 'product_details_page.dart';
 import 'repository/product_repository.dart';
 import 'repository/visibility_repository.dart';
+import 'widgets/error_state_widget.dart';
+import 'widgets/progress_state_widget.dart';
 
 void main() {
   // Configuration for cached_resource.
@@ -121,10 +123,9 @@ class _BodyContent extends StatelessWidget {
         return switch (state) {
           ProductListState(products: final products) when products.isNotEmpty =>
             ProductList(products),
-          ProductListState(hasError: true) => const _ErrorWidget(),
-          ProductListState(isLoading: true) => const SizedBox.expand(
-              child: Center(child: CircularProgressIndicator()),
-            ),
+          ProductListState(hasError: true) => ErrorStateWidget(
+              onRetry: () => context.read<ProductListCubit>().refresh()),
+          ProductListState(isLoading: true) => const ProgressStateWidget(),
           _ => const SizedBox.expand(
               child: Center(child: Text('Empty')),
             ),
@@ -195,33 +196,6 @@ class VisibilityActionButton extends StatelessWidget {
             snapshot.data == true ? Icons.visibility : Icons.visibility_off,
           );
         },
-      ),
-    );
-  }
-}
-
-class _ErrorWidget extends StatelessWidget {
-  const _ErrorWidget();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.expand(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text(
-            'Let\'s pretend there is a readable description of some error!',
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              // Trigger resource to be reloaded
-              context.read<ProductListCubit>().refresh();
-            },
-            child: const Text('Retry'),
-          ),
-        ],
       ),
     );
   }

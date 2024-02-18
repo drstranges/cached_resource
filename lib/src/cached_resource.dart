@@ -13,6 +13,7 @@ import 'resource_config.dart';
 import 'storage/memory_resource_storage.dart';
 import 'util/cache_duration.dart';
 import 'util/network_bound_resource.dart';
+import 'util/utils.dart';
 
 /// Cached resource implementation based on [NetworkBoundResource]
 /// to follow the single source of truth principle.
@@ -125,7 +126,7 @@ class CachedResource<K, V> {
               .requirePersistentStorageProvider()
               .createStorage<K, V>(
                 storageName: cacheName,
-                decode: decode ?? _defaultDecoder<V>(),
+                decode: decode ?? defaultStorageDecoder<V>(),
                 executor: executor,
                 logger: ResourceConfig.instance.logger,
               ),
@@ -161,7 +162,7 @@ class CachedResource<K, V> {
               .requireSecureStorageProvider()
               .createStorage<K, V>(
                 storageName: cacheName,
-                decode: decode ?? _defaultDecoder<V>(),
+                decode: decode ?? defaultStorageDecoder<V>(),
                 logger: ResourceConfig.instance.logger,
               ),
           fetch: fetch,
@@ -272,6 +273,3 @@ class CachedResource<K, V> {
         return resource;
       });
 }
-
-/// Simple decoder that return received value without transformation
-StorageDecoder<V> _defaultDecoder<V>() => (value) => value as V;

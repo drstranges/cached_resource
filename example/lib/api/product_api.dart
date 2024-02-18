@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 /// Fake Api implementation.
@@ -44,6 +46,20 @@ class ProductApi {
       Future.delayed(const Duration(seconds: 1), () {
         final product = _products.firstWhere((product) => product.id == id);
         return product.id.hashCode.toRadixString(16);
+      });
+
+  Future<List<ProductStore>> getProductStoresPageable(
+          String productId, int offset, int limit) =>
+      Future.delayed(const Duration(seconds: 1), () {
+        const totalCount = 200;
+        final count = min(limit, totalCount - offset);
+        final productTitle =
+            _products.firstWhere((product) => product.id == productId).title;
+        return List.generate(
+          count,
+          (index) =>
+              ProductStore(name: '$productTitle Store #${offset + index + 1}'),
+        );
       });
 }
 
@@ -134,6 +150,27 @@ class ProductDetails {
       extraDescription: extraDescription ?? this.extraDescription,
     );
   }
+}
+
+class ProductStore {
+  final String name;
+
+  ProductStore({required this.name});
+
+  Map<String, dynamic> toJson() => {'name': name};
+
+  factory ProductStore.fromJson(dynamic jsonMap) =>
+      ProductStore(name: jsonMap['name'] as String);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ProductStore &&
+          runtimeType == other.runtimeType &&
+          name == other.name;
+
+  @override
+  int get hashCode => name.hashCode;
 }
 
 final _products = <Product>[

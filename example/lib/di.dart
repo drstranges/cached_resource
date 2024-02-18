@@ -6,6 +6,7 @@ import 'api/product_api.dart';
 import 'repository/product_details_repository.dart';
 import 'repository/product_repository.dart';
 import 'repository/product_secret_code_repository.dart';
+import 'repository/store_pageable_repository.dart';
 import 'repository/visibility_repository.dart';
 import 'service/delete_product_use_case.dart';
 
@@ -16,10 +17,12 @@ class Di {
   static final productDetailsRepository = ProductDetailsRepository(_api);
   static final secretCodeRepository = ProductSecretCodeRepository(_api);
   static final visibilityRepository = VisibilityRepository();
+  static final storePageableRepository = StorePageableRepository(_api);
   static final deleteProductUseCase = DeleteProductUseCase(
     api: _api,
     productRepository: productRepository,
     productDetailsRepository: productDetailsRepository,
     secretCodeRepository: secretCodeRepository,
+    storePageableRepository: storePageableRepository,
   );
 }

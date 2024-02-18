@@ -6,18 +6,21 @@ import '../api/product_api.dart';
 import '../repository/product_details_repository.dart';
 import '../repository/product_repository.dart';
 import '../repository/product_secret_code_repository.dart';
+import '../repository/store_pageable_repository.dart';
 
 class DeleteProductUseCase {
   final ProductApi api;
   final ProductRepository productRepository;
   final ProductDetailsRepository productDetailsRepository;
   final ProductSecretCodeRepository secretCodeRepository;
+  final StorePageableRepository storePageableRepository;
 
   DeleteProductUseCase({
     required this.api,
     required this.productRepository,
     required this.productDetailsRepository,
     required this.secretCodeRepository,
+    required this.storePageableRepository,
   });
 
   Future<void> deleteProduct(String productId) async {
@@ -32,5 +35,6 @@ class DeleteProductUseCase {
     productDetailsRepository.remove(productId);
     productDetailsRepository.remove(productId);
     secretCodeRepository.remove(productId);
+    storePageableRepository.remove(productId);
   }
 }
