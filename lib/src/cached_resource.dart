@@ -126,7 +126,8 @@ class CachedResource<K, V> {
               .requirePersistentStorageProvider()
               .createStorage<K, V>(
                 storageName: cacheName,
-                decode: decode ?? defaultStorageDecoder<V>(),
+                decode: decode ??
+                    defaultStorageDecoder<V>(ResourceConfig.instance.logger),
                 executor: executor,
                 logger: ResourceConfig.instance.logger,
               ),
@@ -162,7 +163,8 @@ class CachedResource<K, V> {
               .requireSecureStorageProvider()
               .createStorage<K, V>(
                 storageName: cacheName,
-                decode: decode ?? defaultStorageDecoder<V>(),
+                decode: decode ??
+                    defaultStorageDecoder<V>(ResourceConfig.instance.logger),
                 logger: ResourceConfig.instance.logger,
               ),
           fetch: fetch,
@@ -206,7 +208,7 @@ class CachedResource<K, V> {
           .where((r) => r.isNotLoading || (allowLoadingState && r.hasData))
           .first;
 
-  /// Make cache stale.
+  /// Makes cache stale.
   /// Also triggers resource reloading if [forceReload] is true (by default)
   /// Returns future that completes after reloading completed with success
   /// or error.

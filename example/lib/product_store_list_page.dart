@@ -50,7 +50,7 @@ class ProductStoreListCubit extends Cubit<_State> {
     }
   }
 
-  void refresh(String productId) => _repository.invalidate(productId);
+  Future<void> refresh(String productId) => _repository.invalidate(productId);
 
   @override
   Future<void> close() {
@@ -132,7 +132,7 @@ class StoreList extends StatelessWidget {
   Widget build(BuildContext context) {
     final itemCount = _items.length;
     return RefreshIndicator(
-      onRefresh: () => Di.productRepository.invalidate(),
+      onRefresh: () => context.read<ProductStoreListCubit>().refresh(productId),
       child: ListView.builder(
         itemBuilder: (context, index) {
           if (!loadedAll && index == itemCount) {
