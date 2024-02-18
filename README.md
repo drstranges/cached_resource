@@ -53,6 +53,8 @@ There are a few ways to create a resource depending on used storage.
 
 #### With In-Memory cache
 
+See [example](example/lib/repository/product_details_repository.dart).
+
 ```dart
 
 class AccountBalanceRepository extends CachedResource<String, AccountBalance> {
@@ -78,6 +80,7 @@ final accountBalanceResource = CachedResource<String, AccountBalance>.inMemory(
 #### With persistent cache
 
 The `persistentStorageFactory` should be already set by `ResourceConfig.setup`.
+See [example](example/lib/repository/product_repository.dart).
 
 ```dart
 
@@ -118,6 +121,7 @@ class CategoryRepository {
 #### With secure cache
 
 The `secureStorageFactory` should be already set by `ResourceConfig.setup`.
+See [example](example/lib/repository/product_secret_code_repository.dart).
 
 ```dart
 class ProductSecretCodeRepository extends CachedResource<String, String> {
@@ -147,7 +151,41 @@ class UserRepository extends CachedResource<String, User> {
 }
 ```
 
-### Listen for the resource stream or get value
+#### Pageable resource
+
+You can create a resource that can load a list of items page by page.
+See [example](example/lib/repository/store_pageable_repository.dart).
+
+```dart
+class TransactionHistoryRepository
+        extends OffsetPageableResource<String, TransactionItem> {
+   TransactionHistoryRepository(TransactionHistoryApi api)
+           : super.persistent(
+      'transaction_history',
+      loadPage: (filter, offset, limit) => api.getTransactionHistoryPage(filter, offset, limit),
+      cacheDuration: const CacheDuration(minutes: 15),
+      decode: TransactionItem.fromJson,
+      pageSize: 15,
+   );
+//or
+// : super.inMemory(
+//     'transaction_history',
+//     loadPage: api.getTransactionHistoryPage,
+//     cacheDuration: const CacheDuration(minutes: 15),
+//     pageSize: 15,
+//   );
+}
+
+void init() {
+// Then listen for a data
+  transactionHistoryRepository.asStream(filter).listen(_showListOfItems);
+}
+// on need to load new page
+void loadMore() => transactionHistoryRepository.loadNextPage(filter);
+
+```
+
+### Listen for the resource stream or get a value
 
 Call `cachedResource.get(key)` to get a single value.
 If the cache is not stale, it returns the cached value; otherwise, it triggers a new fetch request
