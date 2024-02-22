@@ -13,3 +13,6 @@
 
 ## 1.0.4
 * Add [OffsetPageableResource]
+
+## 1.0.5
+* Override == and hashCode for [OffsetPageableData]

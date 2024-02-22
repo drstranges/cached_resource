@@ -256,7 +256,7 @@ interface class OffsetPageableDataFactory<V> {
 /// Base class to represent pageable data.
 interface class OffsetPageableData<V> {
   /// Creates simple class to represent pageable data.
-  OffsetPageableData({
+  const OffsetPageableData({
     required this.loadedAll,
     required this.items,
   });
@@ -291,6 +291,20 @@ interface class OffsetPageableData<V> {
       items: items,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is OffsetPageableData &&
+          runtimeType == other.runtimeType &&
+          loadedAll == other.loadedAll &&
+          DeepCollectionEquality().equals(items, other.items);
+
+  @override
+  int get hashCode => Object.hash(
+        loadedAll,
+        Object.hashAll(items),
+      );
 }
 
 /// Exception that throws in case when inconsistent page data detected.
