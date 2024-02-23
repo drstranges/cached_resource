@@ -209,12 +209,23 @@ class CachedResource<K, V> {
           .first;
 
   /// Makes cache stale.
-  /// Also triggers resource reloading if [forceReload] is true (by default)
-  /// Returns future that completes after reloading completed with success
+  ///
+  /// Also, if [reloadIfListened] (by default) then for each resource that
+  /// currently is listened triggers reloading. If [emitLoadingOnReload]
+  /// then emits loading state firstly.
+  ///
+  /// Returns future that completes after reloading finished with success
   /// or error.
-  Future<void> invalidate(K key, {bool forceReload = true}) async {
+  Future<void> invalidate(
+    K key, {
+    bool reloadIfListened = true,
+    bool emitLoadingOnReload = true,
+  }) async {
     final resource = await _ensureResource(key);
-    return resource.invalidate(forceReload: forceReload);
+    return resource.invalidate(
+      reloadIfListened: reloadIfListened,
+      emitLoadingOnReload: emitLoadingOnReload,
+    );
   }
 
   /// Applies [edit] function to cached value and emit as new success value
@@ -251,11 +262,23 @@ class CachedResource<K, V> {
         await _storage.remove(key);
       });
 
-  /// Closes all active subscriptions to resource of any key that was opened
-  /// before and completely clears resource storage
-  Future<void> clearAll() => _lock.synchronized(() async {
-        await Future.wait(_resources.values.map((r) => r.close()));
-        _resources.clear();
+  /// Completely clears resource storage
+  /// and if [closeSubscriptions] closes all active subscriptions for resource
+  /// of any key that was opened before.
+  Future<void> clearAll({bool closeSubscriptions = false}) =>
+      _lock.synchronized(() async {
+        if (closeSubscriptions) {
+          await Future.wait(_resources.values.map((r) => r.close()));
+          _resources.clear();
+        }
+        await clearAllCache();
+      });
+
+  /// Completely clears resource storage used for cache
+  Future<void> clearAllCache() => _lock.synchronized(() async {
+        for (final resource in _resources.values) {
+          resource.clearInternalCache();
+        }
         await _storage.clear();
       });
 

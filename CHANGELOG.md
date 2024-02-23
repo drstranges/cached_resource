@@ -16,3 +16,6 @@
 
 ## 1.0.5
 * Override == and hashCode for [OffsetPageableData]
+
+## 1.0.6
+* Improve cache invalidation

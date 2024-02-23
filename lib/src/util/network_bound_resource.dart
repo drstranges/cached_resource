@@ -96,6 +96,9 @@ class NetworkBoundResource<K, V> {
   bool _isLoading = false;
   bool _shouldReload = false;
 
+  /// Whether there is at least one subscriber using [asStream].
+  bool get hasListener => _subject.hasListener;
+
   /// Creates cold (defer) stream of the resource. On subscribe, it triggers
   /// resource to load from cache or external source ([_fetch] callback)
   /// if cache is stale.
@@ -159,21 +162,30 @@ class NetworkBoundResource<K, V> {
       });
 
   /// Removes resource associated to [_resourceKey] from cache
-  Future<void> clearCache() => _storage.remove(_resourceKey);
+  Future<void> clearCache() {
+    clearInternalCache();
+    return _storage.remove(_resourceKey);
+  }
 
-  /// Make cache stale.
-  /// Also triggers resource reloading if [forceReload] is true (by default).
-  /// If forceReload=true and emitLoading=true then emits loading state firstly.
+  void clearInternalCache() => _last.clear();
+
+  /// Makes cache stale.
+  ///
+  /// Also, if [reloadIfListened] (by default) then for each resource that
+  /// currently is listened triggers reloading. If [emitLoadingOnReload]
+  /// then emits loading state firstly.
+  ///
   /// Returns future that completes after reloading finished with success
   /// or error.
   Future<void> invalidate({
-    bool forceReload = true,
-    bool emitLoading = false,
+    bool reloadIfListened = true,
+    bool emitLoadingOnReload = false,
   }) async {
     // don't clear cache for offline usage, just override store time
     await _overrideStoreTime(0);
-    if (forceReload) {
-      if (emitLoading) {
+
+    if (reloadIfListened && hasListener) {
+      if (emitLoadingOnReload) {
         _emit(Resource.loading(_last.value));
       }
       await asStream(forceReload: true)
@@ -285,5 +297,9 @@ class _InternalCache<V> {
     if (enabled) {
       _cache = newValue;
     }
+  }
+
+  void clear() {
+    _cache = null;
   }
 }

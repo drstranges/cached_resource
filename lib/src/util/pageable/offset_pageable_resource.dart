@@ -135,10 +135,23 @@ class OffsetPageableResource<K, V> {
       _cachedResource.asStream(key, forceReload: forceReload);
 
   /// Makes cache stale.
-  /// Also triggers resource reloading if [forceReload] is true (by default)
-  /// Returns future that completes after reloading completed with success
+  ///
+  /// Also, if [reloadIfListened] (by default) then for each resource that
+  /// currently is listened triggers reloading. If [emitLoadingOnReload]
+  /// then emits loading state firstly.
+  ///
+  /// Returns future that completes after reloading finished with success
   /// or error.
-  Future<void> invalidate(K key) => _cachedResource.invalidate(key);
+  Future<void> invalidate(
+    K key, {
+    bool reloadIfListened = true,
+    bool emitLoadingOnReload = true,
+  }) =>
+      _cachedResource.invalidate(
+        key,
+        reloadIfListened: reloadIfListened,
+        emitLoadingOnReload: emitLoadingOnReload,
+      );
 
   /// Closes all active subscriptions for the resource assigned to [key]
   /// and deletes its cached value from storage
