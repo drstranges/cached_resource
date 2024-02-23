@@ -19,3 +19,6 @@
 
 ## 1.0.6
 * Improve cache invalidation
+
+## 1.0.7
+* Add [CacheDuration.of] resolver

@@ -10,11 +10,19 @@ import 'package:resource_storage/resource_storage.dart';
 typedef CheckIsCacheStale<K, V> = bool Function(
     K key, CacheEntry<V> cache, TimestampProvider timestampProvider);
 
+/// Dynamic [CacheDuration] resolver
+typedef DurationResolver<K, V> = CacheDuration<K, V> Function(
+    K key, CacheEntry<V> cache);
+
 /// Helper class to check if cache is stale
 abstract interface class CacheDuration<K, V> {
   /// Creates dynamic cache duration resolver
   const factory CacheDuration.resolve(CheckIsCacheStale<K, V> delegate) =
       _DelegatedCacheDuration;
+
+  /// Creates dynamic cache duration resolver
+  const factory CacheDuration.of(DurationResolver<K, V> delegate) =
+      _KeyBasedCacheDuration;
 
   /// Creates Duration resolver that never stale cache
   const factory CacheDuration.neverStale() = _NeverStaleCacheDuration;
@@ -56,7 +64,7 @@ class _FixedCacheDuration<K, V> implements CacheDuration<K, V> {
       return true;
     }
     final now = timestampProvider.getTimestamp();
-    return cache.storeTime < now - _durationMillis;
+    return storeTime < now - _durationMillis;
   }
 }
 
@@ -78,4 +86,16 @@ class _NeverStaleCacheDuration<K, V> implements CacheDuration<K, V> {
   bool isCacheStale(
           K key, CacheEntry<V> cache, TimestampProvider timestampProvider) =>
       false;
+}
+
+class _KeyBasedCacheDuration<K, V> implements CacheDuration<K, V> {
+  const _KeyBasedCacheDuration(this._delegate);
+
+  final DurationResolver<K, V> _delegate;
+
+  @override
+  bool isCacheStale(
+      K key, CacheEntry<V> cache, TimestampProvider timestampProvider) {
+    return _delegate(key, cache).isCacheStale(key, cache, timestampProvider);
+  }
 }
