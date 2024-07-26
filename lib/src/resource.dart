@@ -72,6 +72,44 @@ class Resource<T> {
         stackTrace: stackTrace,
       );
 
+  /// Combines this resource with [other] resource using [combiner] function.
+  ///
+  /// [combiner] applies to [data] of both resources regardless of their states.
+  ///
+  /// If both resources are in [ResourceState.success] state, returns new
+  /// resource with [ResourceState.success] state.
+  ///
+  /// If at least one of the resources is in [ResourceState.loading] state,
+  /// returns new resource with [ResourceState.loading] state.
+  ///
+  /// If at least one of the resources is in [ResourceState.error] state,
+  /// returns new resource with [ResourceState.error] state preserving error,
+  /// message and stackTrace.
+  Resource<R> combineWith<R, K>(Resource<K> other, R? Function(T?, K?) combiner) {
+    final combinedData = combiner(data, other.data);
+    if (isSuccess && other.isSuccess) {
+      return Resource.success(combinedData);
+    }
+    if (isLoading || other.isLoading) {
+      return Resource.loading(combinedData);
+    }
+    if (isError) {
+      return map((_) => combinedData);
+    }
+    // else other.isError
+    return other.map((_) => combinedData);
+  }
+
+
+  /// Return combiner function to combine two resources
+  /// using [combiner] function.
+  ///
+  /// See [combineWith] for more details.
+  static Resource<R> Function(Resource<T> resA, Resource<K> resB)
+      combiner<R, T, K>(R? Function(T?, K?) combiner) {
+    return (resA, resB) => resA.combineWith(resB, combiner);
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
