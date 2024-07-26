@@ -173,7 +173,7 @@ class NetworkBoundResource<K, V> {
   ///
   /// Also, if [reloadIfListened] (by default) then for each resource that
   /// currently is listened triggers reloading. If [emitLoadingOnReload]
-  /// then emits loading state firstly.
+  /// then emits loading state firstly (except if resource is already refreshing).
   ///
   /// Returns future that completes after reloading finished with success
   /// or error.
@@ -185,7 +185,7 @@ class NetworkBoundResource<K, V> {
     await _overrideStoreTime(0);
 
     if (reloadIfListened && hasListener) {
-      if (emitLoadingOnReload) {
+      if (emitLoadingOnReload && !_isLoading) {
         _emit(Resource.loading(_last.value));
       }
       await asStream(forceReload: true)
