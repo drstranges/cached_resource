@@ -22,3 +22,7 @@
 
 ## 1.0.7
 * Add [CacheDuration.of] resolver
+
+## 1.0.8
+* Add [Resource.combineWith] method
+* Fix StateError('You cannot add items while items are being added from addStream') on invalidate request while resource is already invalidating
