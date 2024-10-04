@@ -25,7 +25,10 @@ if (flutterVersionName == null) {
 android {
     namespace "com.example.example"
     compileSdkVersion flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
+    //ndkVersion flutter.ndkVersion
+    // TODO: Move back to flutter.ndkVersion after upgrade flutter version in the project.
+    // Ndk 25.1.8937393 is required after gradle upgrade
+    ndkVersion = "25.1.8937393"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

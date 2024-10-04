@@ -15,6 +15,7 @@ dependencies:
   resource_storage_hive: ^1.0.2
   resource_storage_secure: ^1.0.2
   flutter_bloc: ^8.1.4
+  rxdart: ^0.28.0
 
 dev_dependencies:
   flutter_test:

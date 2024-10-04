@@ -70,7 +70,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     setState(() => _state = _State(isLoading: true));
     // Trigger use case to delete the product
     await Di.deleteProductUseCase.deleteProduct(productId);
-    if (context.mounted) Navigator.pop(context);
+    if (mounted) Navigator.pop(context);
   }
 
   @override
