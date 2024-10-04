@@ -1,3 +1,6 @@
+## 1.0.9
+* Allow rxdart >=0.27.0 <0.29.0
+
 ## 1.0.8
 * Add [Resource.combineWith] method
 * Fix StateError('You cannot add items while items are being added from addStream') on invalidate request while resource is already invalidating
