@@ -25,7 +25,7 @@ class OffsetPageableResource<K, V> {
   /// Creates pageable resource with custom storage
   OffsetPageableResource({
     required ResourceStorage<K, OffsetPageableData<V>> storage,
-    required Future<List<V>> Function(K, int, int) loadPage,
+    required LoadPageCallback<K, V> loadPage,
     CacheDuration<K, OffsetPageableData<V>> cacheDuration =
         const CacheDuration.neverStale(),
     OffsetPageableDataFactory<V>? pageableDataFactory,
@@ -44,7 +44,7 @@ class OffsetPageableResource<K, V> {
   /// Creates pageable resource with default in-memory storage.
   OffsetPageableResource.inMemory(
     String storageName, {
-    required Future<List<V>> Function(K, int, int) loadPage,
+    required LoadPageCallback<K, V> loadPage,
     CacheDuration<K, OffsetPageableData<V>> cacheDuration =
         const CacheDuration.neverStale(),
     this.pageSize = defaultResourcePageSize,
@@ -66,7 +66,7 @@ class OffsetPageableResource<K, V> {
   /// Otherwise, the default JSON decoder will be used.
   OffsetPageableResource.persistent(
     String storageName, {
-    required Future<List<V>> Function(K, int, int) loadPage,
+    required LoadPageCallback<K, V> loadPage,
     CacheDuration<K, OffsetPageableData<V>> cacheDuration =
         const CacheDuration.neverStale(),
     StorageDecoder<V>? decode,
