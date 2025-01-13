@@ -1,3 +1,6 @@
+## 1.1.0
+* Add [SizePageableResource] for pageable resource loading by page and size
+ 
 ## 1.0.9
 * Allow rxdart >=0.27.0 <0.29.0
 

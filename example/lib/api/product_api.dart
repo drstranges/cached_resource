@@ -2,13 +2,23 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 /// Fake Api implementation.
 class ProductApi {
   int _counter = 1;
+  final Map<String, List<ProductStore>> _productStores = {};
+
+  List<ProductStore> _getAllProductStores(
+      String productId, String productTitle) {
+    return _productStores.putIfAbsent(
+      productId,
+      () => List.generate(
+        200,
+        (index) => ProductStore(name: '$productTitle Store #$index'),
+      ),
+    );
+  }
 
   Future<List<Product>> getProducts() =>
       Future.delayed(const Duration(seconds: 1), () {
@@ -51,15 +61,26 @@ class ProductApi {
   Future<List<ProductStore>> getProductStoresPageable(
           String productId, int offset, int limit) =>
       Future.delayed(const Duration(seconds: 1), () {
-        const totalCount = 200;
-        final count = min(limit, totalCount - offset);
         final productTitle =
             _products.firstWhere((product) => product.id == productId).title;
-        return List.generate(
-          count,
-          (index) =>
-              ProductStore(name: '$productTitle Store #${offset + index + 1}'),
-        );
+        final allItems = _getAllProductStores(productId, productTitle);
+        return allItems.skip(offset).take(limit).toList();
+      });
+
+  Future<List<ProductStore>> getProductStoresPageSizable(
+          String productId, int page, int size) =>
+      Future.delayed(const Duration(seconds: 1), () {
+        debugPrint('getProductStoresPageSizable: $page, $size');
+        final offset = (page - 1) * size;
+        return getProductStoresPageable(productId, offset, size);
+      });
+
+  Future<void> addProductStoreOnTop(String productId, String storeName) =>
+      Future.delayed(const Duration(seconds: 1), () {
+        final productTitle =
+            _products.firstWhere((product) => product.id == productId).title;
+        final allItems = _getAllProductStores(productId, productTitle);
+        allItems.insert(0, ProductStore(name: storeName));
       });
 }
 

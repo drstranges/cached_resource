@@ -13,4 +13,4 @@ export 'src/resource.dart';
 export 'src/resource_config.dart';
 export 'src/storage/memory_resource_storage.dart';
 export 'src/util/cache_duration.dart';
-export 'src/util/pageable/offset_pageable_resource.dart';
+export 'src/util/pageable/pageable.dart';

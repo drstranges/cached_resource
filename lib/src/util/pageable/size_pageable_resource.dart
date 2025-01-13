@@ -3,57 +3,77 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:math';
 
 import 'package:cached_resource/cached_resource.dart';
 import 'package:collection/collection.dart';
 
 import 'pageable_data.dart';
 
-/// Default page size for [OffsetPageableResource]
-const defaultResourcePageSize = 15;
-
-/// Default negative shift in offset value during page loading.
-const defaultIntersectionCount = 1;
+/// Default page size for [SizePageableResource]
+const defaultPageableResourcePageSize = 15;
 
 /// Callback to load items from the external source (server api, etc.)
-typedef LoadPageCallback<K, V> = Future<List<V>> Function(
-    K key, int offset, int limit);
+/// Page starts from 1.
+typedef LoadPageableCallback<K, V, R> = Future<PageableResponse<V, R>> Function(
+    K key, int page, int size);
 
-@Deprecated('Use PageableDataFactory instead')
-typedef OffsetPageableDataFactory<V> = PageableDataFactory<V>;
-@Deprecated('Use PageableData instead')
-typedef OffsetPageableData<V> = PageableData<V>;
+/// Represents pageable data with items and optional meta information.
+/// Meta information can be used to store additional data like total count, etc.
+class PageableResponse<V, R> {
+  PageableResponse(this.items, {this.meta});
+  final List<V> items;
+  final R? meta;
+}
 
-/// Cached resource that allows pageable loading.
-class OffsetPageableResource<K, V> {
+/// Cached resource that allows pageable loading by page and size.
+class SizePageableResource<K, V, R> {
   /// Creates pageable resource with custom storage
-  OffsetPageableResource({
+  ///
+  /// [loadPage] - callback to load items from the external source (server api, etc.). Page starts from 1.
+  /// [pageSize] - page size that used to load data from external source.
+  /// [duplicatesDetectionEnabled] - whether to check that new page has items from the previous page.
+  /// [cacheDuration] - duration of cache validity.
+  /// [pageableDataFactory] - factory for [SizePageableData].
+  /// [logger] - logger to log internal events.
+  /// [storage] - custom storage to store pageable data.
+  ///
+  /// Throws [InconsistentPageDataException] if [duplicatesDetectionEnabled]
+  /// and detected that new page has items that already loaded on a previous page
+  /// (it means that data on the server was changed and we need to reload all items).
+  SizePageableResource({
     required ResourceStorage<K, PageableData<V>> storage,
-    required LoadPageCallback<K, V> loadPage,
+    required LoadPageableCallback<K, V, R> loadPage,
     CacheDuration<K, PageableData<V>> cacheDuration =
         const CacheDuration.neverStale(),
     PageableDataFactory<V>? pageableDataFactory,
-    this.pageSize = defaultResourcePageSize,
-    this.intersectionCount = defaultIntersectionCount,
+    this.pageSize = defaultPageableResourcePageSize,
+    this.duplicatesDetectionEnabled = true,
     ResourceLogger? logger,
-  })  : assert(intersectionCount >= 0),
-        assert(pageSize > intersectionCount),
-        _loadPage = loadPage,
+  })  : _loadPage = loadPage,
         _cacheDuration = cacheDuration,
         _logger = logger ?? ResourceConfig.instance.logger,
         _storage = storage,
-        _pageableDataFactory =
-            pageableDataFactory ?? PageableDataFactory<V>();
+        _pageableDataFactory = pageableDataFactory ?? PageableDataFactory<V>();
 
   /// Creates pageable resource with default in-memory storage.
-  OffsetPageableResource.inMemory(
+  ///
+  /// [storageName] - name of the storage (like a table name for DB, or a file name).
+  /// [loadPage] - callback to load items from the external source (server api, etc.). Page starts from 1.
+  /// [pageSize] - page size that used to load data from external source.
+  /// [duplicatesDetectionEnabled] - whether to check that new page has items from the previous page.
+  /// [cacheDuration] - duration of cache validity.
+  /// [logger] - logger to log internal events.
+  ///
+  /// Throws [InconsistentPageDataException] if [duplicatesDetectionEnabled]
+  /// and detected that new page has items that already loaded on a previous page
+  /// (it means that data on the server was changed and we need to reload all items).
+  SizePageableResource.inMemory(
     String storageName, {
-    required LoadPageCallback<K, V> loadPage,
+    required LoadPageableCallback<K, V, R> loadPage,
     CacheDuration<K, PageableData<V>> cacheDuration =
         const CacheDuration.neverStale(),
-    this.pageSize = defaultResourcePageSize,
-    this.intersectionCount = defaultIntersectionCount,
+    this.pageSize = defaultPageableResourcePageSize,
+    this.duplicatesDetectionEnabled = true,
     ResourceLogger? logger,
   })  : _loadPage = loadPage,
         _cacheDuration = cacheDuration,
@@ -67,24 +87,40 @@ class OffsetPageableResource<K, V> {
 
   /// Creates pageable resource with default persistent storage.
   ///
+  /// [storageName] - name of the storage (like a table name for DB, or a file name).
+  /// [loadPage] - callback to load items from the external source (server api, etc.). Page starts from 1.
+  /// [pageSize] - page size that used to load data from external source.
+  /// [duplicatesDetectionEnabled] - whether to check that new page has items from the previous page.
+  /// [cacheDuration] - duration of cache validity.
+  /// [decode] - decoder for [V]. If not provided, the default JSON decoder will be used.
+  /// [pageableDataFactory] - factory for [SizePageableData]. If not provided, the default [SizePageableDataFactory] will be used.
+  /// [decodePageableData] - decoder for [SizePageableData]. If not provided, the default JSON decoder will be used.
+  /// [logger] - logger to log internal events.
+  ///
+  /// Throws [InconsistentPageDataException] if [duplicatesDetectionEnabled]
+  /// and detected that new page has items that already loaded on a previous page
+  /// (it means that data on the server was changed and we need to reload all items).
+  ///
+  /// Throws [ResourceStorageProviderNotFoundException] if no persistent storage provider
+  /// was found in [ResourceConfig].
+  ///
   /// [decode] or [decodePageableData] should be provided for complex [V].
   /// Otherwise, the default JSON decoder will be used.
-  OffsetPageableResource.persistent(
+  SizePageableResource.persistent(
     String storageName, {
-    required LoadPageCallback<K, V> loadPage,
+    required LoadPageableCallback<K, V, R> loadPage,
     CacheDuration<K, PageableData<V>> cacheDuration =
         const CacheDuration.neverStale(),
     StorageDecoder<V>? decode,
     StorageDecoder<PageableData<V>>? decodePageableData,
     PageableDataFactory<V>? pageableDataFactory,
-    this.pageSize = defaultResourcePageSize,
-    this.intersectionCount = defaultIntersectionCount,
+    this.pageSize = defaultPageableResourcePageSize,
+    this.duplicatesDetectionEnabled = true,
     ResourceLogger? logger,
   })  : _loadPage = loadPage,
         _cacheDuration = cacheDuration,
         _logger = logger ?? ResourceConfig.instance.logger,
-        _pageableDataFactory =
-            pageableDataFactory ?? PageableDataFactory<V>(),
+        _pageableDataFactory = pageableDataFactory ?? PageableDataFactory<V>(),
         _storage = ResourceConfig.instance
             .requirePersistentStorageProvider()
             .createStorage<K, PageableData<V>>(
@@ -96,25 +132,21 @@ class OffsetPageableResource<K, V> {
             );
 
   /// Page size that used to load data from external source.
-  /// Passing as [limit] param in [LoadPageCallback].
+  /// Passing as [limit] param in [LoadPageableCallback].
   final int pageSize;
 
-  /// Negative shift in offset value during page loading to allow
-  /// intersection in results of two consecutive fetch requests.
-  /// Intersection is needed to simple check if there is no new items
-  /// on the server.
-  final int intersectionCount;
+  /// Whether to check that new page has items from the previous page.
+  final bool duplicatesDetectionEnabled;
 
   final ResourceStorage<K, PageableData<V>> _storage;
 
-  /// Factory for [PageableData].
-  /// Provide custom factory if you want to create custom [PageableData].
+  /// Factory for [SizePageableData].
+  /// Provide custom factory if you want to create custom [SizePageableData].
   final PageableDataFactory<V> _pageableDataFactory;
 
   final CacheDuration<K, PageableData<V>> _cacheDuration;
-  final LoadPageCallback<K, V> _loadPage;
+  final LoadPageableCallback<K, V, R> _loadPage;
   final ResourceLogger? _logger;
-  bool _loading = false;
 
   late final CachedResource<K, PageableData<V>> _cachedResource =
       CachedResource(
@@ -125,6 +157,8 @@ class OffsetPageableResource<K, V> {
 
   /// Getter for he resource to access its methods.
   CachedResource<K, PageableData<V>> get resource => _cachedResource;
+
+  bool _loading = false;
 
   /// Creates cold (defer) stream of the resource. On subscribe it triggers
   /// resource to load from cache or external source ([_loadPage] callback)
@@ -168,8 +202,9 @@ class OffsetPageableResource<K, V> {
 
   /// Loads next page of pageable data and updates cache.
   ///
-  /// Throws [InconsistentPageDataException] when detected that data
-  /// was changed on the remote side, so we need to invalidate all data.
+  /// Throws [InconsistentPageDataException] if [duplicatesDetectionEnabled]
+  /// and detected that new page has items that already loaded on a previous page
+  /// (it means that data on the server was changed and we need to reload all items).
   Future<void> loadNextPage(K key) async {
     if (_loading) return;
     _loading = true;
@@ -177,23 +212,25 @@ class OffsetPageableResource<K, V> {
     try {
       final currentData = (await _cachedResource.get(key)).data;
 
-      // Get offset with shift to overlay [intersectionCount] items
-      var loadedCount = currentData?.items.length ?? 0;
-      final offset = max(0, loadedCount - intersectionCount);
-      final expectedIntersection =
-          offset == 0 ? loadedCount : intersectionCount;
+      // Resolve fully loaded page count. If no data loaded yet, then load first page.
+      final currentPageCount = (currentData?.items.length ?? 0) ~/ pageSize;
+      final nextPage = currentPageCount + 1;
+      _logger?.trace(
+          LoggerLevel.debug, 'PageableRes: Load next page [$nextPage]');
 
-      _logger?.trace(LoggerLevel.debug,
-          'PageableRes: Load next page with offset=[$offset]');
-
-      final nextPageItems = await _loadPage(key, offset, pageSize);
+      final nextPageResponse = await _loadPage(key, nextPage, pageSize);
+      final loadedItems = nextPageResponse.items;
 
       return _cachedResource.updateCachedValue(key, (data) {
         final oldItems = data?.items ?? <V>[];
-        _assertIntersectedItems(oldItems, nextPageItems, expectedIntersection);
+        if (duplicatesDetectionEnabled) {
+          _assertIntersectedItems(oldItems, loadedItems);
+        }
+        checkConsistency(data, nextPageResponse);
         return _pageableDataFactory.create(
-          loadedAll: nextPageItems.length < pageSize,
-          items: oldItems + nextPageItems.sublist(expectedIntersection),
+          loadedAll: loadedItems.length < pageSize,
+          items: oldItems + loadedItems,
+          meta: buildMeta(data, nextPageResponse),
         );
       });
     } catch (error, trace) {
@@ -205,35 +242,22 @@ class OffsetPageableResource<K, V> {
     }
   }
 
-  /// Detects if in next page data we receive [expectedIntersectionCount] items
-  /// from old data, else throws [InconsistentPageDataException].
-  ///
-  /// Warning: we assumed that item can not change its relative position.
-  /// Warning: In case of N new items inserted and the same amount (N)
-  /// of old items deleted on previous pages, it can not be detected this way.
   void _assertIntersectedItems(
     List<V> oldItems,
     List<V> nextPage,
-    int expectedIntersectionCount,
   ) {
-    if (expectedIntersectionCount == 0) {
-      // Nothing to check.
-      return;
-    }
-    final expectedIntersection =
-        oldItems.sublist(max(oldItems.length - expectedIntersectionCount, 0));
-    final actualItems = nextPage.take(expectedIntersectionCount).toList();
-
-    if (!DeepCollectionEquality().equals(actualItems, expectedIntersection)) {
+    final intersectedItems = oldItems.toSet().intersection(nextPage.toSet());
+    if (intersectedItems.isNotEmpty) {
       _logger?.trace(LoggerLevel.warning,
-          'PageableRes: Data inconsistent: wrong intersection');
+          'PageableRes: Data inconsistent: new page has items from the previous page');
       throw const InconsistentPageDataException();
     }
   }
 
   Future<PageableData<V>> _loadFirstPage(K key) async {
     // Load first page
-    final items = await _loadPage(key, 0, pageSize);
+    final firstPageResponse = await _loadPage(key, 1, pageSize);
+    final items = firstPageResponse.items;
     // Try to detect if we can reuse cached data
     // to not reset cache to the first page.
     final cache =
@@ -248,6 +272,24 @@ class OffsetPageableResource<K, V> {
     return _pageableDataFactory.create(
       loadedAll: items.length < pageSize,
       items: items,
+      meta: buildMeta(null, firstPageResponse),
     );
+  }
+
+  /// Override this method to build meta information for the next page if needed.
+  String? buildMeta(
+    PageableData<V>? data,
+    PageableResponse<V, R> nextPageResponse,
+  ) {
+    return null;
+  }
+
+  /// Override this method to check consistency of the data.
+  /// If data is inconsistent, throw [InconsistentPageDataException].
+  void checkConsistency(
+    PageableData<V>? data,
+    PageableResponse<V, R> nextPageResponse,
+  ) {
+    // Do nothing by default.
   }
 }

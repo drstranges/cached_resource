@@ -12,14 +12,14 @@ import 'service/delete_product_use_case.dart';
 
 /// Simple di helper. In real projects usually GetIt or any other.
 class Di {
-  static final _api = ProductApi();
-  static final productRepository = ProductRepository(_api);
-  static final productDetailsRepository = ProductDetailsRepository(_api);
-  static final secretCodeRepository = ProductSecretCodeRepository(_api);
+  static final api = ProductApi();
+  static final productRepository = ProductRepository(api);
+  static final productDetailsRepository = ProductDetailsRepository(api);
+  static final secretCodeRepository = ProductSecretCodeRepository(api);
   static final visibilityRepository = VisibilityRepository();
-  static final storePageableRepository = StorePageableRepository(_api);
+  static final storePageableRepository = StorePageableRepository(api);
   static final deleteProductUseCase = DeleteProductUseCase(
-    api: _api,
+    api: api,
     productRepository: productRepository,
     productDetailsRepository: productDetailsRepository,
     secretCodeRepository: secretCodeRepository,

@@ -112,6 +112,13 @@ class ProductStoreListPage extends StatelessWidget {
           }),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Di.api.addProductStoreOnTop(
+            productId, 'New Store #${DateTime.now().toIso8601String()}');
+        },
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }
