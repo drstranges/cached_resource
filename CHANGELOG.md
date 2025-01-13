@@ -1,3 +1,6 @@
+## 1.1.2
+* SizePageableResource: Add method [isLoadedAll] to check if all items are loaded and [canReuseCache] to check if cache can be reused after invalidate.
+
 ## 1.1.1
 * Make [PageableData] public
 

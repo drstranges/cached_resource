@@ -8,8 +8,6 @@ import 'dart:math';
 import 'package:cached_resource/cached_resource.dart';
 import 'package:collection/collection.dart';
 
-import 'pageable_data.dart';
-
 /// Default page size for [OffsetPageableResource]
 const defaultResourcePageSize = 15;
 

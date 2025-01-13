@@ -5,9 +5,6 @@
 import 'dart:async';
 
 import 'package:cached_resource/cached_resource.dart';
-import 'package:collection/collection.dart';
-
-import 'pageable_data.dart';
 
 /// Default page size for [SizePageableResource]
 const defaultPageableResourcePageSize = 15;
@@ -228,7 +225,7 @@ class SizePageableResource<K, V, R> {
         }
         checkConsistency(data, nextPageResponse);
         return _pageableDataFactory.create(
-          loadedAll: loadedItems.length < pageSize,
+          loadedAll: isLoadedAll(nextPageResponse, pageSize),
           items: oldItems + loadedItems,
           meta: buildMeta(data, nextPageResponse),
         );
@@ -262,15 +259,13 @@ class SizePageableResource<K, V, R> {
     // to not reset cache to the first page.
     final cache =
         await _cachedResource.getCachedValue(key, synchronized: false);
-    final firstCachedPage = cache?.items.take(items.length).toList();
-    if (cache != null &&
-        DeepCollectionEquality().equals(items, firstCachedPage)) {
+    if (cache != null && canReuseCache(cache, firstPageResponse)) {
       // First page of cached data is the same as newly requested.
       // Assume that there are no changes and we can keep cached data.
       return cache;
     }
     return _pageableDataFactory.create(
-      loadedAll: items.length < pageSize,
+      loadedAll: isLoadedAll(firstPageResponse, pageSize),
       items: items,
       meta: buildMeta(null, firstPageResponse),
     );
@@ -292,4 +287,17 @@ class SizePageableResource<K, V, R> {
   ) {
     // Do nothing by default.
   }
+
+  /// Override this method to check if cache can be reused after invalidate.
+  /// If cache can be reused, return true.
+  /// [cache] - current cached data.
+  /// [firstPageResponse] - response of the first page after [invalidate].
+  bool canReuseCache(
+    PageableData<V> cache,
+    PageableResponse<V, R> firstPageResponse,
+  ) => false;
+
+  /// Override this method to check if all items are loaded.
+  bool isLoadedAll(PageableResponse<V, R> response, int pageSize) =>
+      response.items.length < pageSize;
 }
