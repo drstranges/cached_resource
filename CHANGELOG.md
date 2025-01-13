@@ -1,3 +1,6 @@
+## 1.1.4
+* SizePageableResource: Fix resolving the next page to load
+
 ## 1.1.3
 * SizePageableResource: Breaking change: [PageableData] => [SizePageableData].
 * Fixed issue with restoring meta in [PageableData].

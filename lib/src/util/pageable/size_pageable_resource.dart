@@ -209,9 +209,7 @@ class SizePageableResource<K, V, R> {
     try {
       final currentData = (await _cachedResource.get(key)).data;
 
-      // Resolve fully loaded page count. If no data loaded yet, then load first page.
-      final currentPageCount = (currentData?.items.length ?? 0) ~/ pageSize;
-      final nextPage = currentPageCount + 1;
+      final nextPage = currentData?.nextPage ?? 1;
       _logger?.trace(
           LoggerLevel.debug, 'PageableRes: Load next page [$nextPage]');
 
