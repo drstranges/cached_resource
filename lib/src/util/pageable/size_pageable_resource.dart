@@ -207,7 +207,7 @@ class SizePageableResource<K, V, R> {
     _loading = true;
     _logger?.trace(LoggerLevel.debug, 'PageableRes: Load next page requested');
     try {
-      final currentData = (await _cachedResource.get(key)).data;
+      final currentData = await _cachedResource.getCachedValue(key);
 
       final nextPage = currentData?.nextPage ?? 1;
       _logger?.trace(

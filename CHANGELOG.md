@@ -1,3 +1,6 @@
+## 1.1.5
+* SizePageableResource: Fix loading next page
+
 ## 1.1.4
 * SizePageableResource: Fix resolving the next page to load
 

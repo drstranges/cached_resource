@@ -173,7 +173,7 @@ class OffsetPageableResource<K, V> {
     _loading = true;
     _logger?.trace(LoggerLevel.debug, 'PageableRes: Load next page requested');
     try {
-      final currentData = (await _cachedResource.get(key)).data;
+      final currentData = (await _cachedResource.getCachedValue(key));
 
       // Get offset with shift to overlay [intersectionCount] items
       var loadedCount = currentData?.items.length ?? 0;
