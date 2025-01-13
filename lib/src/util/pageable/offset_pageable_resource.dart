@@ -236,11 +236,7 @@ class OffsetPageableResource<K, V> {
     // to not reset cache to the first page.
     final cache =
         await _cachedResource.getCachedValue(key, synchronized: false);
-    final firstCachedPage = cache?.items.take(items.length).toList();
-    if (cache != null &&
-        DeepCollectionEquality().equals(items, firstCachedPage)) {
-      // First page of cached data is the same as newly requested.
-      // Assume that there are no changes and we can keep cached data.
+    if (cache != null && canReuseCache(cache, items)) {
       return cache;
     }
     return _pageableDataFactory.create(
@@ -248,4 +244,10 @@ class OffsetPageableResource<K, V> {
       items: items,
     );
   }
+
+  /// Override this method to check if cache can be reused after invalidate.
+  /// If cache can be reused, return true.
+  /// [cache] - current cached data.
+  /// [firstPageResponse] - response of the first page after [invalidate].
+  bool canReuseCache(PageableData<V> cache, List<V> firstPageResponse) => false;
 }

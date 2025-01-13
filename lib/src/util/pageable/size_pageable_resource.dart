@@ -30,7 +30,7 @@ class SizePageableResource<K, V, R> {
   /// [pageSize] - page size that used to load data from external source.
   /// [duplicatesDetectionEnabled] - whether to check that new page has items from the previous page.
   /// [cacheDuration] - duration of cache validity.
-  /// [pageableDataFactory] - factory for [SizePageableData].
+  /// [pageableDataFactory] - factory for [SizeSizePageableData].
   /// [logger] - logger to log internal events.
   /// [storage] - custom storage to store pageable data.
   ///
@@ -38,11 +38,11 @@ class SizePageableResource<K, V, R> {
   /// and detected that new page has items that already loaded on a previous page
   /// (it means that data on the server was changed and we need to reload all items).
   SizePageableResource({
-    required ResourceStorage<K, PageableData<V>> storage,
+    required ResourceStorage<K, SizePageableData<V>> storage,
     required LoadPageableCallback<K, V, R> loadPage,
-    CacheDuration<K, PageableData<V>> cacheDuration =
+    CacheDuration<K, SizePageableData<V>> cacheDuration =
         const CacheDuration.neverStale(),
-    PageableDataFactory<V>? pageableDataFactory,
+    SizePageableDataFactory<V>? pageableDataFactory,
     this.pageSize = defaultPageableResourcePageSize,
     this.duplicatesDetectionEnabled = true,
     ResourceLogger? logger,
@@ -50,7 +50,7 @@ class SizePageableResource<K, V, R> {
         _cacheDuration = cacheDuration,
         _logger = logger ?? ResourceConfig.instance.logger,
         _storage = storage,
-        _pageableDataFactory = pageableDataFactory ?? PageableDataFactory<V>();
+        _pageableDataFactory = pageableDataFactory ?? SizePageableDataFactory<V>();
 
   /// Creates pageable resource with default in-memory storage.
   ///
@@ -67,7 +67,7 @@ class SizePageableResource<K, V, R> {
   SizePageableResource.inMemory(
     String storageName, {
     required LoadPageableCallback<K, V, R> loadPage,
-    CacheDuration<K, PageableData<V>> cacheDuration =
+    CacheDuration<K, SizePageableData<V>> cacheDuration =
         const CacheDuration.neverStale(),
     this.pageSize = defaultPageableResourcePageSize,
     this.duplicatesDetectionEnabled = true,
@@ -75,9 +75,9 @@ class SizePageableResource<K, V, R> {
   })  : _loadPage = loadPage,
         _cacheDuration = cacheDuration,
         _logger = logger ?? ResourceConfig.instance.logger,
-        _pageableDataFactory = PageableDataFactory<V>(),
+        _pageableDataFactory = SizePageableDataFactory<V>(),
         _storage = ResourceConfig.instance.inMemoryStorageFactory
-            .createStorage<K, PageableData<V>>(
+            .createStorage<K, SizePageableData<V>>(
           storageName: storageName,
           logger: logger ?? ResourceConfig.instance.logger,
         );
@@ -90,8 +90,8 @@ class SizePageableResource<K, V, R> {
   /// [duplicatesDetectionEnabled] - whether to check that new page has items from the previous page.
   /// [cacheDuration] - duration of cache validity.
   /// [decode] - decoder for [V]. If not provided, the default JSON decoder will be used.
-  /// [pageableDataFactory] - factory for [SizePageableData]. If not provided, the default [SizePageableDataFactory] will be used.
-  /// [decodePageableData] - decoder for [SizePageableData]. If not provided, the default JSON decoder will be used.
+  /// [pageableDataFactory] - factory for [SizeSizePageableData]. If not provided, the default [SizeSizePageableDataFactory] will be used.
+  /// [decodeSizePageableData] - decoder for [SizeSizePageableData]. If not provided, the default JSON decoder will be used.
   /// [logger] - logger to log internal events.
   ///
   /// Throws [InconsistentPageDataException] if [duplicatesDetectionEnabled]
@@ -101,29 +101,29 @@ class SizePageableResource<K, V, R> {
   /// Throws [ResourceStorageProviderNotFoundException] if no persistent storage provider
   /// was found in [ResourceConfig].
   ///
-  /// [decode] or [decodePageableData] should be provided for complex [V].
+  /// [decode] or [decodeSizePageableData] should be provided for complex [V].
   /// Otherwise, the default JSON decoder will be used.
   SizePageableResource.persistent(
     String storageName, {
     required LoadPageableCallback<K, V, R> loadPage,
-    CacheDuration<K, PageableData<V>> cacheDuration =
+    CacheDuration<K, SizePageableData<V>> cacheDuration =
         const CacheDuration.neverStale(),
     StorageDecoder<V>? decode,
-    StorageDecoder<PageableData<V>>? decodePageableData,
-    PageableDataFactory<V>? pageableDataFactory,
+    StorageDecoder<SizePageableData<V>>? decodeSizePageableData,
+    SizePageableDataFactory<V>? pageableDataFactory,
     this.pageSize = defaultPageableResourcePageSize,
     this.duplicatesDetectionEnabled = true,
     ResourceLogger? logger,
   })  : _loadPage = loadPage,
         _cacheDuration = cacheDuration,
         _logger = logger ?? ResourceConfig.instance.logger,
-        _pageableDataFactory = pageableDataFactory ?? PageableDataFactory<V>(),
+        _pageableDataFactory = pageableDataFactory ?? SizePageableDataFactory<V>(),
         _storage = ResourceConfig.instance
             .requirePersistentStorageProvider()
-            .createStorage<K, PageableData<V>>(
+            .createStorage<K, SizePageableData<V>>(
               storageName: storageName,
-              decode: decodePageableData ??
-                  PageableData.defaultJsonStorageDecoder<V>(
+              decode: decodeSizePageableData ??
+                  SizePageableData.defaultJsonStorageDecoder<V>(
                       decode, logger ?? ResourceConfig.instance.logger),
               logger: logger ?? ResourceConfig.instance.logger,
             );
@@ -135,17 +135,17 @@ class SizePageableResource<K, V, R> {
   /// Whether to check that new page has items from the previous page.
   final bool duplicatesDetectionEnabled;
 
-  final ResourceStorage<K, PageableData<V>> _storage;
+  final ResourceStorage<K, SizePageableData<V>> _storage;
 
-  /// Factory for [SizePageableData].
-  /// Provide custom factory if you want to create custom [SizePageableData].
-  final PageableDataFactory<V> _pageableDataFactory;
+  /// Factory for [SizeSizePageableData].
+  /// Provide custom factory if you want to create custom [SizeSizePageableData].
+  final SizePageableDataFactory<V> _pageableDataFactory;
 
-  final CacheDuration<K, PageableData<V>> _cacheDuration;
+  final CacheDuration<K, SizePageableData<V>> _cacheDuration;
   final LoadPageableCallback<K, V, R> _loadPage;
   final ResourceLogger? _logger;
 
-  late final CachedResource<K, PageableData<V>> _cachedResource =
+  late final CachedResource<K, SizePageableData<V>> _cachedResource =
       CachedResource(
     storage: _storage,
     fetch: _loadFirstPage,
@@ -153,7 +153,7 @@ class SizePageableResource<K, V, R> {
   );
 
   /// Getter for he resource to access its methods.
-  CachedResource<K, PageableData<V>> get resource => _cachedResource;
+  CachedResource<K, SizePageableData<V>> get resource => _cachedResource;
 
   bool _loading = false;
 
@@ -166,7 +166,7 @@ class SizePageableResource<K, V, R> {
   ///
   /// Call [loadNextPage] to load new page. After new page loaded it emits
   /// new resource with all loaded items: old + new page.
-  Stream<Resource<PageableData<V>>> asStream(K key,
+  Stream<Resource<SizePageableData<V>>> asStream(K key,
           {bool forceReload = false}) =>
       _cachedResource.asStream(key, forceReload: forceReload);
 
@@ -225,7 +225,8 @@ class SizePageableResource<K, V, R> {
         }
         checkConsistency(data, nextPageResponse);
         return _pageableDataFactory.create(
-          loadedAll: isLoadedAll(nextPageResponse, pageSize),
+          nextPage:
+              isLoadedAll(nextPageResponse, pageSize) ? null : nextPage + 1,
           items: oldItems + loadedItems,
           meta: buildMeta(data, nextPageResponse),
         );
@@ -251,7 +252,7 @@ class SizePageableResource<K, V, R> {
     }
   }
 
-  Future<PageableData<V>> _loadFirstPage(K key) async {
+  Future<SizePageableData<V>> _loadFirstPage(K key) async {
     // Load first page
     final firstPageResponse = await _loadPage(key, 1, pageSize);
     final items = firstPageResponse.items;
@@ -265,7 +266,7 @@ class SizePageableResource<K, V, R> {
       return cache;
     }
     return _pageableDataFactory.create(
-      loadedAll: isLoadedAll(firstPageResponse, pageSize),
+      nextPage: isLoadedAll(firstPageResponse, pageSize) ? null : 2,
       items: items,
       meta: buildMeta(null, firstPageResponse),
     );
@@ -273,7 +274,7 @@ class SizePageableResource<K, V, R> {
 
   /// Override this method to build meta information for the next page if needed.
   String? buildMeta(
-    PageableData<V>? data,
+    SizePageableData<V>? data,
     PageableResponse<V, R> nextPageResponse,
   ) {
     return null;
@@ -282,7 +283,7 @@ class SizePageableResource<K, V, R> {
   /// Override this method to check consistency of the data.
   /// If data is inconsistent, throw [InconsistentPageDataException].
   void checkConsistency(
-    PageableData<V>? data,
+    SizePageableData<V>? data,
     PageableResponse<V, R> nextPageResponse,
   ) {
     // Do nothing by default.
@@ -293,7 +294,7 @@ class SizePageableResource<K, V, R> {
   /// [cache] - current cached data.
   /// [firstPageResponse] - response of the first page after [invalidate].
   bool canReuseCache(
-    PageableData<V> cache,
+    SizePageableData<V> cache,
     PageableResponse<V, R> firstPageResponse,
   ) => false;
 

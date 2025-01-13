@@ -1,3 +1,7 @@
+## 1.1.3
+* SizePageableResource: Breaking change: [PageableData] => [SizePageableData].
+* Fixed issue with restoring meta in [PageableData].
+
 ## 1.1.2
 * SizePageableResource: Add method [isLoadedAll] to check if all items are loaded and [canReuseCache] to check if cache can be reused after invalidate.
 
