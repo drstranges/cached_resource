@@ -3,9 +3,12 @@
 /// all items from the first page.
 class InconsistentPageDataException implements Exception {
   /// Creates [InconsistentPageDataException].
-  const InconsistentPageDataException();
+  const InconsistentPageDataException([this.message]);
+
+  final String? message;
 
   /// String representation to print in log
   @override
-  String toString() => 'InconsistentPageDataException';
+  String toString() =>
+      'InconsistentPageDataException${message != null ? ': $message' : ''}';
 }

@@ -1,3 +1,6 @@
+## 1.1.1
+* Make [PageableData] public
+
 ## 1.1.0
 * Add [SizePageableResource] for pageable resource loading by page and size
  
