@@ -1,3 +1,7 @@
+## 1.1.6
+* Use reentrant lock to fix dead-lock in [clearAllCache]
+* [PAGEABLE] Fix InconsistentPageDataException if try to load next page if all items already
+
 ## 1.1.5
 * SizePageableResource: Fix loading next page
 
