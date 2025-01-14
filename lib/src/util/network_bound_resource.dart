@@ -90,7 +90,7 @@ class NetworkBoundResource<K, V> {
   final TimestampProvider _timestampProvider;
 
   final _subject = PublishSubject<Resource<V>>();
-  final _lock = Lock();
+  final _lock = Lock(reentrant: true);
   final _InternalCache _last;
 
   bool _isLoading = false;

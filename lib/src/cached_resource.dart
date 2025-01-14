@@ -177,7 +177,7 @@ class CachedResource<K, V> {
   final CacheDuration<K, V> _cacheDuration;
   final bool _internalCacheEnabled;
   final _resources = <K, NetworkBoundResource<K, V>>{};
-  final _lock = Lock();
+  final _lock = Lock(reentrant: true);
 
   /// Creates cold (defer) stream of the resource. On subscribe it triggers
   /// resource to load from cache or external source ([_fetch] callback)
