@@ -18,6 +18,7 @@ typedef LoadPageableCallback<K, V, R> = Future<PageableResponse<V, R>> Function(
 /// Meta information can be used to store additional data like total count, etc.
 class PageableResponse<V, R> {
   PageableResponse(this.items, {this.meta});
+
   final List<V> items;
   final R? meta;
 }
@@ -50,7 +51,8 @@ class SizePageableResource<K, V, R> {
         _cacheDuration = cacheDuration,
         _logger = logger ?? ResourceConfig.instance.logger,
         _storage = storage,
-        _pageableDataFactory = pageableDataFactory ?? SizePageableDataFactory<V>();
+        _pageableDataFactory =
+            pageableDataFactory ?? SizePageableDataFactory<V>();
 
   /// Creates pageable resource with default in-memory storage.
   ///
@@ -117,7 +119,8 @@ class SizePageableResource<K, V, R> {
   })  : _loadPage = loadPage,
         _cacheDuration = cacheDuration,
         _logger = logger ?? ResourceConfig.instance.logger,
-        _pageableDataFactory = pageableDataFactory ?? SizePageableDataFactory<V>(),
+        _pageableDataFactory =
+            pageableDataFactory ?? SizePageableDataFactory<V>(),
         _storage = ResourceConfig.instance
             .requirePersistentStorageProvider()
             .createStorage<K, SizePageableData<V>>(
@@ -193,9 +196,11 @@ class SizePageableResource<K, V, R> {
   /// and deletes its cached value from storage
   Future<void> remove(K key) => _cachedResource.remove(key);
 
-  /// Closes all active subscriptions to resource of any key that was opened
-  /// before and completely clears resource storage
-  Future<void> clear() => _cachedResource.clearAll();
+  /// Completely clears resource storage
+  /// and if [closeSubscriptions] closes all active subscriptions for resource
+  /// of any key that was opened before.
+  Future<void> clearAll({bool closeSubscriptions = false}) =>
+      _cachedResource.clearAll(closeSubscriptions: closeSubscriptions);
 
   /// Loads next page of pageable data and updates cache.
   ///
@@ -208,7 +213,11 @@ class SizePageableResource<K, V, R> {
     _logger?.trace(LoggerLevel.debug, 'PageableRes: Load next page requested');
     try {
       final currentData = await _cachedResource.getCachedValue(key);
-
+      if (currentData?.loadedAll == true) {
+        _logger?.trace(
+            LoggerLevel.debug, 'PageableRes: All items are already loaded');
+        return;
+      }
       final nextPage = currentData?.nextPage ?? 1;
       _logger?.trace(
           LoggerLevel.debug, 'PageableRes: Load next page [$nextPage]');
@@ -217,6 +226,11 @@ class SizePageableResource<K, V, R> {
       final loadedItems = nextPageResponse.items;
 
       return _cachedResource.updateCachedValue(key, (data) {
+        if (data != currentData) {
+          _logger?.trace(LoggerLevel.warning,
+              'PageableRes: Cached data was changed during loading next page => ignore next page data');
+          return data;
+        }
         final oldItems = data?.items ?? <V>[];
         if (duplicatesDetectionEnabled) {
           _assertIntersectedItems(oldItems, loadedItems);
@@ -294,7 +308,8 @@ class SizePageableResource<K, V, R> {
   bool canReuseCache(
     SizePageableData<V> cache,
     PageableResponse<V, R> firstPageResponse,
-  ) => false;
+  ) =>
+      false;
 
   /// Override this method to check if all items are loaded.
   bool isLoadedAll(PageableResponse<V, R> response, int pageSize) =>

@@ -160,20 +160,31 @@ class OffsetPageableResource<K, V> {
   /// and deletes its cached value from storage
   Future<void> remove(K key) => _cachedResource.remove(key);
 
-  /// Closes all active subscriptions to resource of any key that was opened
-  /// before and completely clears resource storage
-  Future<void> clear() => _cachedResource.clearAll();
+  /// Completely clears resource storage
+  /// and if [closeSubscriptions] closes all active subscriptions for resource
+  /// of any key that was opened before.
+  Future<void> clearAll({bool closeSubscriptions = false}) =>
+      _cachedResource.clearAll(closeSubscriptions: closeSubscriptions);
 
   /// Loads next page of pageable data and updates cache.
   ///
+  /// [skipIfLoadedAll] - if true, then will not load next page if all items
+  /// are already loaded. Else, will try to load next page even if
+  /// [PageableData.loadedAll] is true.
+  ///
   /// Throws [InconsistentPageDataException] when detected that data
   /// was changed on the remote side, so we need to invalidate all data.
-  Future<void> loadNextPage(K key) async {
+  Future<void> loadNextPage(K key, {bool skipIfLoadedAll = false}) async {
     if (_loading) return;
     _loading = true;
     _logger?.trace(LoggerLevel.debug, 'PageableRes: Load next page requested');
     try {
       final currentData = (await _cachedResource.getCachedValue(key));
+      if (skipIfLoadedAll && currentData?.loadedAll == true) {
+        _logger?.trace(
+            LoggerLevel.debug, 'PageableRes: All items are already loaded');
+        return;
+      }
 
       // Get offset with shift to overlay [intersectionCount] items
       var loadedCount = currentData?.items.length ?? 0;
@@ -187,6 +198,11 @@ class OffsetPageableResource<K, V> {
       final nextPageItems = await _loadPage(key, offset, pageSize);
 
       return _cachedResource.updateCachedValue(key, (data) {
+        if (data != currentData) {
+          _logger?.trace(LoggerLevel.warning,
+              'PageableRes: Cached data was changed during loading next page => ignore next page data');
+          return data;
+        }
         final oldItems = data?.items ?? <V>[];
         _assertIntersectedItems(oldItems, nextPageItems, expectedIntersection);
         return _pageableDataFactory.create(
