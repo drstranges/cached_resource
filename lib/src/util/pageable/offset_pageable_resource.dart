@@ -41,8 +41,7 @@ class OffsetPageableResource<K, V> {
         _cacheDuration = cacheDuration,
         _logger = logger ?? ResourceConfig.instance.logger,
         _storage = storage,
-        _pageableDataFactory =
-            pageableDataFactory ?? PageableDataFactory<V>();
+        _pageableDataFactory = pageableDataFactory ?? PageableDataFactory<V>();
 
   /// Creates pageable resource with default in-memory storage.
   OffsetPageableResource.inMemory(
@@ -81,8 +80,7 @@ class OffsetPageableResource<K, V> {
   })  : _loadPage = loadPage,
         _cacheDuration = cacheDuration,
         _logger = logger ?? ResourceConfig.instance.logger,
-        _pageableDataFactory =
-            pageableDataFactory ?? PageableDataFactory<V>(),
+        _pageableDataFactory = pageableDataFactory ?? PageableDataFactory<V>(),
         _storage = ResourceConfig.instance
             .requirePersistentStorageProvider()
             .createStorage<K, PageableData<V>>(
@@ -165,6 +163,22 @@ class OffsetPageableResource<K, V> {
   /// of any key that was opened before.
   Future<void> clearAll({bool closeSubscriptions = false}) =>
       _cachedResource.clearAll(closeSubscriptions: closeSubscriptions);
+
+  /// Applies [edit] function to cached value and emit as new success value
+  /// If [notifyOnNull] set as true then will emit success(null) in case
+  /// if there was a cached value but edit function returned null
+  Future<void> updateCachedValue(
+    K key,
+    PageableData<V>? Function(PageableData<V>? value) edit, {
+    bool notifyOnNull = false,
+  }) =>
+      _cachedResource.updateCachedValue(key, edit, notifyOnNull: notifyOnNull);
+
+  /// Returns cached value if exists
+  /// Set [synchronized] to false if you need to call this function
+  /// inside [FetchCallable] or [updateCachedValue]
+  Future<PageableData<V>?> getCachedValue(K key, {bool synchronized = true}) =>
+      _cachedResource.getCachedValue(key, synchronized: synchronized);
 
   /// Loads next page of pageable data and updates cache.
   ///

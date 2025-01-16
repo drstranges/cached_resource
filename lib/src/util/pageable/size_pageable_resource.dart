@@ -202,6 +202,29 @@ class SizePageableResource<K, V, R> {
   Future<void> clearAll({bool closeSubscriptions = false}) =>
       _cachedResource.clearAll(closeSubscriptions: closeSubscriptions);
 
+  /// Applies [edit] function to cached value and emit as new success value
+  /// If [notifyOnNull] set as true then will emit success(null) in case
+  /// if there was a cached value but edit function returned null
+  Future<void> updateCachedValue(
+    K key,
+    SizePageableData<V>? Function(SizePageableData<V>? value) edit, {
+    bool notifyOnNull = false,
+  }) =>
+      _cachedResource.updateCachedValue(key, edit, notifyOnNull: notifyOnNull);
+
+  /// Returns cached value if exists
+  /// Set [synchronized] to false if you need to call this function
+  /// inside [FetchCallable] or [updateCachedValue]
+  Future<SizePageableData<V>?> getCachedValue(
+    K key, {
+    bool synchronized = true,
+  }) =>
+      _cachedResource.getCachedValue(key, synchronized: synchronized);
+
+  /// Puts new value to cache and emits Resource.success(value)
+  Future<void> putValue(K key, SizePageableData<V> value) =>
+      _cachedResource.putValue(key, value);
+
   /// Loads next page of pageable data and updates cache.
   ///
   /// Throws [InconsistentPageDataException] if [duplicatesDetectionEnabled]
